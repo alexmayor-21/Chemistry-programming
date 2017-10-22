@@ -2,8 +2,8 @@ import argparse, sys
 from collections import Counter
 import math
 import numpy as np
+import sys
 import unittest
-
 
 class Huckel:
     
@@ -55,8 +55,9 @@ class Huckel:
                     hMat[row, col] = self.beta
                     hMat[col, row] = self.beta
         evals, evecs = np.linalg.eig(hMat)
-        # method works only in Python 3
-        # assert math.isclose(sum(evals), 0.)
+        # run-time assertion: method works only in Python 3
+        if sys.version_info[0] > 3:
+            assert math.isclose(sum(evals), 0.), "Panic! Huckel energies don't sum to 0!"
         return sorted(Counter(evals).items(), reverse=True)  
     
     def printEnerg(self):
