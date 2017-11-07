@@ -25,11 +25,11 @@ class Huckel:
         self.n = n
         self.cyclic = cyclic
         self.platonic = platonic
-        self.alpha = 0
-        self.beta = -1
+        self.alpha = alpha
+        self.beta = beta
         self._bonds = self._getBonds()
         self.eig = self._getEig()
-        if verbose: self.printEnerg()
+        if verbose: print(self)
         
     def _getBonds(self):
         """
@@ -60,15 +60,16 @@ class Huckel:
             assert math.isclose(sum(evals), 0.), "Panic! Huckel energies don't sum to 0!"
         return sorted(Counter(evals).items(), reverse=True)  
     
-    def printEnerg(self):
+    def __str__(self):
         """
         Print energies and degeneracies with formatting.
         """
-        print ("Energy\tDegeneracy\n")
+        print_statement = list()
         for energy, degen in self.eig:
-            if energy > 0: print (" %.3f\t%i" % (energy, degen))
-            else: print ("%.3f\t%i" % (energy, degen))
-        print
+            if energy > 0: print_statement.append(" %.3f\t%i" % (energy, degen))
+            else: print_statement.append("%.3f\t%i" % (energy, degen))
+        print_statement = "Energy\tDegeneracy\n" + '/n'.join(print_statement) + '\n'
+        return print_statement
 
 class TestOutputValues(unittest.TestCase):
 
