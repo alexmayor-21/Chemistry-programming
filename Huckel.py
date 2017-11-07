@@ -21,7 +21,7 @@ class Huckel:
             raise ValueError("Platonic solid with given number vertices doesn't exist")
         if cyclic and platonic:
             raise ValueError("Molecule cannot be both cyclic and platonic") 
-            
+        
         self.n = n
         self.cyclic = cyclic
         self.platonic = platonic
@@ -68,7 +68,7 @@ class Huckel:
         for energy, degen in self.eig:
             if energy > 0: print_statement.append(" %.3f\t%i" % (energy, degen))
             else: print_statement.append("%.3f\t%i" % (energy, degen))
-        print_statement = "Energy\tDegeneracy\n" + '/n'.join(print_statement) + '\n'
+        print_statement = "Energy\tDegeneracy\n" + '\n'.join(print_statement) + '\n'
         return print_statement
 
 class TestOutputValues(unittest.TestCase):
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     parser.add_argument("-cyclic", help="flag for cyclic molecule", action="store_true")
     parser.add_argument("-platonic", help="flag for platonic solid", action="store_true")
     parser.add_argument("-unittest", help="flag for unit testing", action="store_false")
-    parser.add_argument("--alpha", help="value of alpha (AO energy)", type=int)
-    parser.add_argument("--beta", help="value of beta (resonance integral)", type=int)
+    parser.add_argument("--alpha", default=0, help="value of alpha (AO energy)", type=int)
+    parser.add_argument("--beta", default=-1, help="value of beta (resonance integral)", type=int)
     args = parser.parse_args()
     Huckel(n=args.n, cyclic=args.cyclic, platonic=args.platonic, alpha=args.alpha, beta=args.beta)
