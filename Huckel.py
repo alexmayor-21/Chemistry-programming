@@ -8,11 +8,30 @@ import unittest
 class Huckel:
     
     """
+
     Class used to calculate energies of delocalised systems using Huckel's theory.
+    Example usage:
+
+    1. <instance> = Huckel(*args, **kwargs) -- initiate class with molecule specified by arguments and compute its Huckel energies
+    Arguments are:
+    n -- number of atoms
+    cyclic -- is molecule cyclic
+    platonic -- is molecule platonic
+    alpha -- energy of electron in p orbital
+    beta -- resonance integral between adjacent orbitals
+    verbose -- print formatted energies during when initiating class instance 
+
+    2. print(<instance>) -- print formatted energies
+
     """
     platonic_adjacency = {4: {0:[1,2,3], 1:[2,3], 2:[3]},
-            6: {0:[1,2,3,4], 1:[2,3,5], 2:[3,5], 3:[4,5], 4:[5]},
-            8: {0:[1,3,4], 1:[2,5], 2:[3,6], 3:[7], 4:[5,7], 5:[6], 6:[7]}}
+            6: {0:[1,2,3,4], 1:[2,4,5], 2:[3,5], 3:[4,5], 4:[5]},
+            8: {0:[1,3,4], 1:[2,5], 2:[3,6], 3:[7], 4:[5,7], 5:[6], 6:[7]},
+            12: {0:[1,2,3,4,5], 1:[2,5,6,10], 2:[3,6,7], 3:[4,7,8], 4:[5,8,9],
+            5:[9,10], 6:[7,10,11], 7:[8,11], 8:[9,11], 9:[10,11], 10:[11]},
+            20: {0:[1,4,5], 1:[2,7], 3:[4,11], 4:[13], 5:[6,14], 6:[7,16],
+                7:[8], 8:[9,17], 9:[10], 10:[11,18], 11:[12], 12:[13,19],
+                13:[14], 14:[15], 15:[16,19], 16:[17], 17:[18], 18:[19]}}
                 
     def __init__(self, n, cyclic=False, platonic=False, alpha=0, beta=-1, verbose=True):
         if n < 2:
@@ -55,9 +74,6 @@ class Huckel:
                     hMat[row, col] = self.beta
                     hMat[col, row] = self.beta
         evals, evecs = np.linalg.eig(hMat)
-        # run-time assertion: method works only in Python 3
-        if sys.version_info[0] > 3:
-            assert math.isclose(sum(evals), 0.), "Panic! Huckel energies don't sum to 0!"
         return sorted(Counter(evals).items(), reverse=True)  
     
     def __str__(self):
@@ -66,8 +82,8 @@ class Huckel:
         """
         print_statement = list()
         for energy, degen in self.eig:
-            if energy > 0: print_statement.append(" %.3f\t%i" % (energy, degen))
-            else: print_statement.append("%.3f\t%i" % (energy, degen))
+            if energy > 0:  print_statement.append(" %.3f\t%i" % (energy, degen))
+            else:           print_statement.append("%.3f\t%i" % (energy, degen))
         print_statement = "Energy\tDegeneracy\n" + '\n'.join(print_statement) + '\n'
         return print_statement
 
