@@ -8,7 +8,6 @@ import unittest
 class Huckel:
     
     """
-
     Class used to calculate energies of delocalised systems using Huckel's theory.
 
     Example usage:
@@ -24,7 +23,6 @@ class Huckel:
     2. print(<instance>) -- print formatted energies
 
     3. <instance>.eig -- a list of tuples (eigenvalue, degeneracy)
-
     """
     platonic_adjacency = {4: {0:[1,2,3], 1:[2,3], 2:[3]},
             6: {0:[1,2,3,4], 1:[2,4,5], 2:[3,5], 3:[4,5], 4:[5]},
@@ -109,12 +107,12 @@ class TestOutputValues(unittest.TestCase):
 
 if __name__ == '__main__':
     class MyParser(argparse.ArgumentParser):
-        # overriding error method to print help message rather than error
-        # when no arguments are passed (prints error message by default)
+        # overriding error method to print help message
+        # when script is called without arguments (default was to print error)
         def error(self, message):
             self.print_help()
             sys.exit()
-            
+
     parser = MyParser()
     parser.add_argument("n", help="number of atoms in molecule", type=int)
     parser.add_argument("-cyclic", help="flag for cyclic molecule", action="store_true")
