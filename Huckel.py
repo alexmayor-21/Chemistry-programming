@@ -10,8 +10,8 @@ class Huckel:
     """
 
     Class used to calculate energies of delocalised systems using Huckel's theory.
-    Example usage:
 
+    Example usage:
     1. <instance> = Huckel(*args, **kwargs) -- initiate class with molecule specified by arguments and compute its Huckel energies
     Arguments are:
     n -- number of atoms
@@ -23,20 +23,22 @@ class Huckel:
 
     2. print(<instance>) -- print formatted energies
 
+    3. <instance>.eig -- a list of tuples (eigenvalue, degeneracy)
+
     """
     platonic_adjacency = {4: {0:[1,2,3], 1:[2,3], 2:[3]},
             6: {0:[1,2,3,4], 1:[2,4,5], 2:[3,5], 3:[4,5], 4:[5]},
             8: {0:[1,3,4], 1:[2,5], 2:[3,6], 3:[7], 4:[5,7], 5:[6], 6:[7]},
             12: {0:[1,2,3,4,5], 1:[2,5,6,10], 2:[3,6,7], 3:[4,7,8], 4:[5,8,9],
-            5:[9,10], 6:[7,10,11], 7:[8,11], 8:[9,11], 9:[10,11], 10:[11]},
-            20: {0:[1,4,5], 1:[2,7], 3:[4,11], 4:[13], 5:[6,14], 6:[7,16],
+                5:[9,10], 6:[7,10,11], 7:[8,11], 8:[9,11], 9:[10,11], 10:[11]},
+            20: {0:[1,4,5], 1:[2,7], 2:[3,9], 3:[4,11], 4:[13], 5:[6,14], 6:[7,16],
                 7:[8], 8:[9,17], 9:[10], 10:[11,18], 11:[12], 12:[13,19],
                 13:[14], 14:[15], 15:[16,19], 16:[17], 17:[18], 18:[19]}}
                 
     def __init__(self, n, cyclic=False, platonic=False, alpha=0, beta=-1, verbose=True):
         if n < 2:
             raise ValueError("Molecule isn't defined")
-        if platonic and n not in platonic_adjacency.keys():
+        if platonic and n not in Huckel.platonic_adjacency.keys():
             raise ValueError("Platonic solid with given number vertices doesn't exist")
         if cyclic and platonic:
             raise ValueError("Molecule cannot be both cyclic and platonic") 
@@ -56,7 +58,7 @@ class Huckel:
         that are connected to it.
         """
         if self.platonic:
-            return platonic_adjacency[n]
+            return Huckel.platonic_adjacency[self.n]
         else:
             bonds = {i: [i+1] for i in range(self.n-1)}
             if self.cyclic: bonds[0].append(self.n-1)
@@ -74,6 +76,9 @@ class Huckel:
                     hMat[row, col] = self.beta
                     hMat[col, row] = self.beta
         evals, evecs = np.linalg.eig(hMat)
+        # without rounding, some eigenvalues that are actually equal seem different
+        # due to numerical precision
+        evals = [round(val, 5) for val in evals]
         return sorted(Counter(evals).items(), reverse=True)  
     
     def __str__(self):
@@ -102,8 +107,15 @@ class TestOutputValues(unittest.TestCase):
         energs = set([round(energ, 3) for energ in energs])
         self.assertEqual(energs, set([0., -2., +2.]))
 
-if __name__ == '__main__':          
-    parser = argparse.ArgumentParser()
+if __name__ == '__main__':
+    class MyParser(argparse.ArgumentParser):
+        # overriding error method to print help message rather than error
+        # when no arguments are passed (prints error message by default)
+        def error(self, message):
+            self.print_help()
+            sys.exit()
+            
+    parser = MyParser()
     parser.add_argument("n", help="number of atoms in molecule", type=int)
     parser.add_argument("-cyclic", help="flag for cyclic molecule", action="store_true")
     parser.add_argument("-platonic", help="flag for platonic solid", action="store_true")
@@ -111,4 +123,5 @@ if __name__ == '__main__':
     parser.add_argument("--alpha", default=0, help="value of alpha (AO energy)", type=int)
     parser.add_argument("--beta", default=-1, help="value of beta (resonance integral)", type=int)
     args = parser.parse_args()
-    Huckel(n=args.n, cyclic=args.cyclic, platonic=args.platonic, alpha=args.alpha, beta=args.beta)
+    if args.n:
+        Huckel(n=args.n, cyclic=args.cyclic, platonic=args.platonic, alpha=args.alpha, beta=args.beta)
