@@ -124,7 +124,7 @@ class FreqNM:
         try:
             message += 'Expected vibr freq of stretching mode = %.0f cm-1\n' % FreqNM.expected_freq[self.name]['freqr']
             message += 'Expected vibr freq of bending mode = %.0f cm-1\n\n' % FreqNM.expected_freq[self.name]['freqtheta']
-        except:
+        except KeyError:
             message += '\n'
         message += 'Equilibrium energy = %.2f Hartree\n' % self.minenergy
         message += u'Equilibrium angle = %.0f\u00B0\n' % self.mintheta
@@ -137,11 +137,11 @@ class FreqNM:
 if __name__ == '__main__':            
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', default=None, help='Unix path to directory with .out files')
-    parser.add_argument('-o', default=None, help='Unit path where store energy plot')
+    parser.add_argument('-o', default=None, help='Unit path where want to save energy plot (optional)')
     args = parser.parse_args()
     if args.i:
         inst = FreqNM(args.i)
-        print inst
+        print (inst)
         inst.plot()
         if args.o:
             plt.savefig(args.o)
