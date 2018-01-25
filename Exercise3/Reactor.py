@@ -51,12 +51,12 @@ class Reactor(object):
         self.timestep = timestep
     
     @staticmethod
-    def process_react(string):
+    def process_react(stri):
         """
         Convert chemical reactions from the format "A+B->2C+D" to the format 
-        [("chemical species", stoichiometric coeff), ...] that is accepted by Reaction class
+        {"chemical species": stoichiometric coeff, ...} that is accepted by Reaction class
         """
-        [reactants, products] = string.split('->')
+        [reactants, products] = stri.split('->')
         find_tuple = re.compile('(\d*)(\w*)')
         
         def get_dict(stri):
