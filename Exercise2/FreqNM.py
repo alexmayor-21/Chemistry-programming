@@ -8,7 +8,7 @@ from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 import argparse, sys
 
-class FreqNM:
+class FreqNM(object):
     
     """
     Class used to calculate frequencies of stretch and bend normal modes of
@@ -112,7 +112,7 @@ class FreqNM:
         Z = self.data[:,2].reshape(shape)
         fig = plt.figure(figsize=(8.5,8.5))
         ax = fig.add_subplot(111, projection='3d')
-        surf = ax.plot_surface(X, Y, Z, cmap = cm.coolwarm)
+        surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm)
         ax.set_xlabel(u'r / \u212B')
         ax.set_ylabel(u'\u0398 / degrees')
         ax.set_zlabel(u'Energy / hartree')

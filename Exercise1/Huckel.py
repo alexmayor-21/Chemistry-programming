@@ -5,7 +5,7 @@ import numpy as np
 import sys
 import unittest
 
-class Huckel:
+class Huckel(object) :
     
     """
     Class used to calculate energies of delocalised systems using Huckel's theory.
@@ -85,7 +85,7 @@ class Huckel:
         """
         print_statement = list()
         for energy, degen in self.eig:
-            if energy > 0:  print_statement.append(" %.3f\t%i" % (energy, degen))
+            if energy > 0:  print_statement.append("%.3f\t%i" % (energy, degen))
             else:           print_statement.append("%.3f\t%i" % (energy, degen))
         print_statement = "Energy\tDegeneracy\n" + '\n'.join(print_statement) + '\n'
         return print_statement

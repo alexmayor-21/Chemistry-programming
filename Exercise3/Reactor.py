@@ -5,13 +5,13 @@ import re
 import random
 import argparse, sys
 
-class Reactor:
+class Reactor(object):
     
     """
     Class mimicking a chemical reactor
     """
     
-    class Reaction:
+    class Reaction(object):
         """
         Class storing chemical species involved in a reaction and its
         kinetic parameters
@@ -143,7 +143,7 @@ class Reactor:
                             for (name, conc) in self.concs.items())
         return header + conc_str
 
-class Diffusion:
+class Diffusion(object):
     
     """
     A system of interconnected cells each running a set of chemical reactions and linked
@@ -306,7 +306,7 @@ def BZ_experiment(outarr, outfig, verbose=False, concs={'A': 0.06, 'B': 0.06, 'P
 if __name__ == '__main__':            
     parser = argparse.ArgumentParser()
     parser.add_argument('-protein_folding', action='store_true', help='Run experiment investigating the effect of urea concentration' + \
-   													 		 			'on the folding of a two-domain protein that fold cooperatively')
+   													 		 		  'on the folding of a two-domain protein that fold cooperatively')
     parser.add_argument('-BZ', action='store_true', help='Run experiment investigating oscillations of a Belousov-Zhabotinsky reaction using the Oregonator model')
     parser.add_argument('--outarr', default=None, help='Unix path to write a numpy array with intermediate concentrations of the run (optional)')
     parser.add_argument('--outfig', default=None, help='Unix path to save the resulting figure (optional')
