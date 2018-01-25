@@ -26,6 +26,9 @@ class FreqNM:
     
     """
     
+    # experimental frequencies obtained from
+    # H2S -- http://webbook.nist.gov/cgi/cbook.cgi?ID=C7783064&Mask=800
+    # H2O -- http://www1.lsbu.ac.uk/water/water_vibrational_spectrum.html
     expected_freq = {'H2O': {'freqr': 3657, 'freqtheta': 1594},
                      'H2S': {'freqr': 2615, 'freqtheta': 1183}}
     
