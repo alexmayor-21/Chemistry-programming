@@ -75,7 +75,7 @@ class FreqNM:
         dataminr=dataminr[:num_consider]
         p = np.polyfit((dataminr[:,0]-minr)**2, dataminr[:,2], 1)
         # using formulae from the handout
-        kr = p[0]*2*hartree_to_J/(10**(-10*2)) # units Hartree*m^-2
+        kr = p[0]*2*hartree_to_J/(10**(-10*2)) # units J*m^-2
         mu1 = 2*10**(-3)/NA
         self.freqr = 1/(2*pi*c_tilde)*sqrt(kr/mu1)
         
@@ -85,7 +85,7 @@ class FreqNM:
         datamintheta = datamintheta[:num_consider]
         p = np.polyfit((datamintheta[:,1]-mintheta)**2, datamintheta[:,2], 1)
         # using formulae from the handout
-        ktheta = p[0]*2*hartree_to_J*(180/pi)**2 # units Hartree*radians^-2
+        ktheta = p[0]*2*hartree_to_J*(180/pi)**2 # units J*radians^-2
         mu2 = 0.5*10**(-3)/NA
         self.freqtheta = 1/(2*pi*c_tilde)*sqrt(ktheta/(mu2*(minr*10**(-10))**2))
         
