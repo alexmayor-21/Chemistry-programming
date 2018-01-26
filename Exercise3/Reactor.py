@@ -65,10 +65,7 @@ class Reactor(object):
             species_dict = dict()
             for term in li:
                 match = re.search(find_tuple, term)
-                if match.group(1):
-                    stoichiom = int(match.group(1))
-                else:
-                    stoichiom = 1
+                stoichiom = int(match.group(1)) if match.group(1) else 1
                 species = match.group(2)
                 species_dict[species] = stoichiom
             return species_dict
@@ -77,7 +74,7 @@ class Reactor(object):
         products = get_dict(products)
         return reactants, products
     
-    def _get_updates(self):
+    def _update(self):
         """
         Get updates in concentrations using current concentrations and kinetic parameters of each reaction
         """
@@ -89,12 +86,6 @@ class Reactor(object):
                 self.updates[name] += rate * stoichiom * self.timestep
             for (name, stochiom) in react.reactants.items():
                 self.updates[name] -= rate * stoichiom * self.timestep
-        
-    def _update(self):
-        """
-        Update concentrations using updates computed by _get_updates()
-        """
-        self._get_updates()
         for (species, update) in self.updates.items():
             self.concs[species] += update
     
@@ -155,15 +146,16 @@ class Diffusion(object):
     def __init__(self, dim, diffconst, concs_default, reacts, freq_special=None, concs_special=None, timestep=10**-6):
         """
         dim -- (list of) spatial dimension(s) great than 1
-        diffconst -- diffusion coefficient (each species diffuses as difference in conc * diffconst)
+        diffconst -- 0.0 <= diffusion coefficient <= 0.5 (each species diffuses as difference in conc * diffconst)
         concs and reacts -- concentrations and reactions as required by the Reactor class
         prob_special -- probability that a given cell is special
         concs_special -- initial concentrations of special cells
         """
         self.dim = dim
-        self.cells = list()
         self.diffconst = diffconst
+        self.species = concs_default.keys()
         # CHANGE TO INCREASE DIMENSIONALITY
+        self.cells = list()
         for i in range(dim):
             if not i % freq_special:
                 self.cells.append(Reactor(dict(concs_special), dict(reacts), timestep))
@@ -180,13 +172,9 @@ class Diffusion(object):
             cell1 = self.cells[i]
             cell2 = self.cells[i+1]
             for species, cons in cell1.concs.items():
-                conc_diff = cell1.concs[species] - cell2.concs[species]
-                cell1.interm_concs[species] -= conc_diff * self.diffconst
-                if cell1.interm_concs[species] < 0.:
-                    cell1.interm_concs[species] = 0.
-                cell2.interm_concs[species] += conc_diff * self.diffconst
-                if cell2.interm_concs[species] < 0.:
-                    cell2.interm_concs[species] = 0.
+                update = (cell1.concs[species] - cell2.concs[species]) * self.diffconst
+                cell1.interm_concs[species] -= update
+                cell2.interm_concs[species] += update
         for cell in self.cells:
             cell.concs = cell.interm_concs
             
@@ -199,15 +187,32 @@ class Diffusion(object):
                 cell._update()
             self._diffuse()
             
-    def plot1d(self, species):
-        concs = list()
-        for i in range(self.dim):
-            cell = self.cells[i]
-            concs.append(cell.concs[species])
+    def plot1d(self, species=self.species):
+        """
+        Plot concentration vs cell number of a particular chemical species or species
+    
+        species -- string or list of string of species to plot
+        """
+        def get_conc_list(speci):
+            concs = list()
+            for i in range(self.dim):
+                cell = self.cells[i]
+                concs.append(cell.concs[speci])
+            return concs
+
         plt.figure(figsize=(10,10))
-        plt.plot(range(self.dim), concs)
-        plt.ylabel('[%s]' % species)
         plt.xlabel('cell number')
+        if isinstance(species, list):
+            for speci in species:
+                concs = get_conc_list(speci)
+                plt.plot(range(self.dim), concs, legend=speci)
+            plt.ylabel('[chemical species]')
+            plt.legend()
+        else:
+            concs = get_conc_list(species)
+            plt.plot(range(self.dim), concs)
+            plt.ylabel('[%s]' % species)
+
         plt.show()
         
     def plot2d(self, species):
@@ -227,21 +232,15 @@ def urea_folding_experiment(outarr, outfig, verbose=False, ureaconc_range=np.ara
     if verbose:
     	print "D <-> I <-> N\nD -- fully unfolded\nI -- single domain folded\nN -- both domains folded\n"
     	print "Initial concentrations:\n" + '\n'.join('%s\t%.3fM' % (species, concs) for (species, concs) in concs.items()) + '\n'
-
-    def consturea(init, power, urea):
-        """
-        Programmatically compute first-order reaction rates at each concentration of urea
-        """
-        return init * exp(power*urea)
     
     results = np.zeros((len(ureaconc_range), 4))
     for i, ureaconc in enumerate(ureaconc_range):
         print ('Started run %i at [urea] = %.3f' % (i+1, ureaconc))
         # rate constants given in the handout
-        reacts = [('D->I', consturea(26000, -1.68, ureaconc)),
-                  ('I->D', consturea(6*10**-2, 0.96, ureaconc)),
-                  ('I->N', consturea(730, -1.72, ureaconc)),
-                  ('N->I', consturea(7.5*10**-4, 1.20, ureaconc))]
+        reacts = [('D->I', 26000*exp(-1.68*ureaconc),
+                  ('I->D', 6*10**-2*exp(0.96*ureaconc),
+                  ('I->N', 730*exp(-1.72*ureaconc),
+                  ('N->I', 7.5*10**-4*exp(1.20*ureaconc)]
         exper = Reactor(concs, reacts)
         exper.converge()
         results[i] = [ureaconc, exper.concs['D'], exper.concs['I'], exper.concs['N']]
