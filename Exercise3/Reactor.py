@@ -20,7 +20,8 @@ class Reactor(object):
             """
             reactants and products -- as a dictionary with keys corresponding to chemical species
             and values to their coefficients (all coefficients are positive)
-            const -- rate constant"""
+            const -- rate constant
+            """
             self.reactants = reactants
             self.products = products
             self.const = const
@@ -212,7 +213,7 @@ class Diffusion(object):
     def plot2d(self, species):
         # CHANGE TO INCREASE DIMENSIONALITY
         # can use plt.imshow(<numpy array of concentrations>) to visualise 2D systems
-        pass
+        return
 
 def urea_folding_experiment(outarr, outfig, verbose=False, ureaconc_range=np.arange(0., 8., .25), concs={'D': 1., 'I': 0., 'N': 0.}):
     """
@@ -244,8 +245,9 @@ def urea_folding_experiment(outarr, outfig, verbose=False, ureaconc_range=np.ara
         exper = Reactor(concs, reacts)
         exper.converge()
         results[i] = [ureaconc, exper.concs['D'], exper.concs['I'], exper.concs['N']]
-        
-    np.savetxt(outarr, results, delimiter=',')
+    
+    if outarr:    
+        np.savetxt(outarr, results, delimiter=',')
     
     fig = plt.figure(figsize=(10,10))
     ax = fig.add_subplot(111)
@@ -256,7 +258,8 @@ def urea_folding_experiment(outarr, outfig, verbose=False, ureaconc_range=np.ara
     ax.set_xlabel("[Urea]/M", fontsize=20)
     ax.set_title("Equilibrium fraction of protein states against urea concentration", fontsize=20)
     plt.legend()
-    ax.tick_params(labelsize=20)
+    if outfig:
+        ax.tick_params(labelsize=20)
     plt.savefig(outfig)
     plt.show()
 
@@ -288,8 +291,8 @@ def BZ_experiment(outarr, outfig, verbose=False, concs={'A': 0.06, 'B': 0.06, 'P
         exper.jump_forward(500)
         results[step+1] = [step*10, exper.concs['X'], exper.concs['Y'], exper.concs['Z']]
     
-    np.savetxt(outarr, results, delimiter=',')
-
+    if outarr:
+        np.savetxt(outarr, results, delimiter=',')
         
     fig = plt.figure(figsize=(10,10))
     ax = fig.add_subplot(111)
@@ -300,7 +303,8 @@ def BZ_experiment(outarr, outfig, verbose=False, concs={'A': 0.06, 'B': 0.06, 'P
     ax.set_xlabel("time / s", fontsize=20)
     ax.set_title("Oscillations of concentrations with time", fontsize=20)
     plt.legend()
-    plt.savefig(outfig)
+    if outfig:
+        plt.savefig(outfig)
     plt.show()
 
 if __name__ == '__main__':            
