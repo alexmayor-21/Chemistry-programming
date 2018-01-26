@@ -12,18 +12,18 @@ class Huckel(object) :
 
     Example usage:
     1. <instance> = Huckel(*args, **kwargs) -- initiate class with molecule specified by arguments and compute its Huckel energies
-    Arguments are:
+    arguments:
     n -- number of atoms
-    cyclic -- is molecule cyclic
-    platonic -- is molecule platonic
-    alpha -- energy of electron in p orbital
-    beta -- resonance integral between adjacent orbitals
-    verbose -- print formatted energies during when initiating class instance 
-
+    cyclic -- is molecule cyclic (optional)
+    platonic -- is molecule platonic (optional)
+    alpha -- energy of electron in p orbital (optional)
+    beta -- resonance integral between adjacent orbitals (optional)
+    verbose -- print formatted energies during when initiating class instance optional)
     2. print(<instance>) -- print formatted energies
-
     3. <instance>.eig -- a list of tuples (eigenvalue, degeneracy)
+
     """
+
     platonic_adjacency = {4: {0:[1,2,3], 1:[2,3], 2:[3]},
             6: {0:[1,2,3,4], 1:[2,4,5], 2:[3,5], 3:[4,5], 4:[5]},
             8: {0:[1,3,4], 1:[2,5], 2:[3,6], 3:[7], 4:[5,7], 5:[6], 6:[7]},
@@ -85,7 +85,7 @@ class Huckel(object) :
         """
         print_statement = list()
         for energy, degen in self.eig:
-            if energy > 0:  print_statement.append("%.3f\t%i" % (energy, degen))
+            if energy > 0:  print_statement.append(" %.3f\t%i" % (energy, degen))
             else:           print_statement.append("%.3f\t%i" % (energy, degen))
         print_statement = "Energy\tDegeneracy\n" + '\n'.join(print_statement) + '\n'
         return print_statement
@@ -114,7 +114,7 @@ if __name__ == '__main__':
             sys.exit()
 
     parser = MyParser()
-    parser.add_argument("n", help="number of atoms in molecule", type=int)
+    parser.add_argument("n", default=None, help="number of atoms in molecule", type=int)
     parser.add_argument("-cyclic", help="flag for cyclic molecule", action="store_true")
     parser.add_argument("-platonic", help="flag for platonic solid", action="store_true")
     parser.add_argument("-unittest", help="flag for unit testing", action="store_false")
