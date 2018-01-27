@@ -24,6 +24,7 @@ class Huckel(object) :
 
     """
 
+    # determined manually
     platonic_adjacency = {4: {0:[1,2,3], 1:[2,3], 2:[3]},
             6: {0:[1,2,3,4], 1:[2,4,5], 2:[3,5], 3:[4,5], 4:[5]},
             8: {0:[1,3,4], 1:[2,5], 2:[3,6], 3:[7], 4:[5,7], 5:[6], 6:[7]},
@@ -34,7 +35,7 @@ class Huckel(object) :
                 13:[14], 14:[15], 15:[16,19], 16:[17], 17:[18], 18:[19]}}
                 
     def __init__(self, n, cyclic=False, platonic=False, alpha=0, beta=-1, verbose=True):
-        if n < 2:
+        if n < 1:
             raise ValueError("Molecule isn't defined")
         if platonic and n not in Huckel.platonic_adjacency.keys():
             raise ValueError("Platonic solid with given number vertices doesn't exist")
@@ -48,7 +49,8 @@ class Huckel(object) :
         self.beta = beta
         self._bonds = self._getBonds()
         self.eig = self._getEig()
-        if verbose: print(self)
+        if verbose: 
+            print(self)
         
     def _getBonds(self):
         """
@@ -59,7 +61,8 @@ class Huckel(object) :
             return Huckel.platonic_adjacency[self.n]
         else:
             bonds = {i: [i+1] for i in range(self.n-1)}
-            if self.cyclic: bonds[0].append(self.n-1)
+            if self.cyclic: 
+                bonds[0].append(self.n-1)
             return bonds
 
     def _getEig(self):
