@@ -121,8 +121,8 @@ if __name__ == '__main__':
     parser.add_argument("-cyclic", help="flag for cyclic molecule", action="store_true")
     parser.add_argument("-platonic", help="flag for platonic solid", action="store_true")
     parser.add_argument("-unittest", help="flag for unit testing", action="store_false")
-    parser.add_argument("--alpha", default=0, help="value of alpha (AO energy)", type=int)
-    parser.add_argument("--beta", default=-1, help="value of beta (resonance integral)", type=int)
+    parser.add_argument("--alpha", default=0, help="value of alpha (AO energy)", type=float)
+    parser.add_argument("--beta", default=-1, help="value of beta (resonance integral)", type=float)
     args = parser.parse_args()
     if args.n:
         Huckel(n=args.n, cyclic=args.cyclic, platonic=args.platonic, alpha=args.alpha, beta=args.beta)
