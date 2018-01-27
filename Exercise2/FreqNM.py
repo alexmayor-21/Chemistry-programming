@@ -2,11 +2,9 @@ from glob import glob
 import re
 import numpy as np
 from math import pi, sqrt
-from decimal import Decimal
 import matplotlib.pyplot as plt
 from matplotlib import cm
-from mpl_toolkits.mplot3d import Axes3D
-import argparse, sys
+import argparse
 
 class FreqNM(object):
     
@@ -135,7 +133,7 @@ class FreqNM(object):
         return message.encode('utf-8') 
     
     def __repr__(self):
-        return 'normal modes of %s' % self.name
+        return 'normal mode frequencies of %s' % self.name
 
 if __name__ == '__main__':            
     parser = argparse.ArgumentParser()
@@ -150,5 +148,3 @@ if __name__ == '__main__':
             plt.savefig(args.o)
     else:
         parser.print_help()
-            
-
