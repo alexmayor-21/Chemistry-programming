@@ -3,6 +3,7 @@ import re
 import numpy as np
 from math import pi, sqrt
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 import argparse
 
@@ -47,7 +48,7 @@ class FreqNM(object):
             theta = params.group(2)
             with open(doc, 'r') as idoc:
                 text = idoc.read()
-                [match] = re.finditer(get_energy, text)
+                [match] = re.finditer(get_energy, text) # raise error if match is not unique
                 energy = match.group(1)
             self.data[i] = [r, theta, energy]
         
@@ -92,7 +93,7 @@ class FreqNM(object):
         self.minenergy = minenergy
     
     
-    def plot(self):
+    def plot(self, outfiles=None):
         """
         Plot the energy surface
         """
@@ -115,6 +116,8 @@ class FreqNM(object):
         ax.set_ylabel(u'\u0398 / degrees')
         ax.set_zlabel(u'Energy / hartree')
         ax.set_title('Energy surface for %s' % self.name) 
+        if outfiles:
+            plt.savefig(outfiles)
         plt.show()
         
     def __str__(self):
@@ -137,14 +140,12 @@ class FreqNM(object):
 
 if __name__ == '__main__':            
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', default=None, help='Unix path to directory with .out files')
-    parser.add_argument('-o', default=None, help='Unit path where want to save energy plot (optional)')
+    parser.add_argument('-i', default=None, help='Unix path to directory with .out files', type=str)
+    parser.add_argument('-o', default=None, help='Unit path where want to save energy plot (optional)', type=str)
     args = parser.parse_args()
     if args.i:
         inst = FreqNM(args.i)
         print (inst)
-        inst.plot()
-        if args.o:
-            plt.savefig(args.o)
+        inst.plot(args.o)
     else:
         parser.print_help()
