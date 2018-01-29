@@ -17,7 +17,8 @@ class FreqNM(object):
     
     Freq_NM(<path to folder>) -- initialise class and compute normal mode frequencies
     print(<class instance>) -- print normal mode frequencies
-    <class instance>.plot() -- plot 3D energy surface
+    <class instance>.plot(<optional Unix path where save figure>) -- plot 3D energy surface and optionally save it
+    at the address provided
     <class instance>.freqr -- frequency of stretch normal mode
     <class instance>.freqtheta -- frequency of bend normal mode
     <class instance>.minr -- bond length (in Angstroms) at energy minimum
