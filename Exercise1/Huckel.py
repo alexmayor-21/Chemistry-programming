@@ -88,8 +88,8 @@ class Huckel(object) :
         """
         print_statement = list()
         for energy, degen in self.eig:
-            if energy > 0:  print_statement.append(" %.3f\t%i" % (energy, degen))
-            else:           print_statement.append("%.3f\t%i" % (energy, degen))
+            if energy > 0:  print_statement.append(" %.5f\t%i" % (energy, degen))
+            else:           print_statement.append("%.5f\t%i" % (energy, degen))
         print_statement = "Energy\tDegeneracy\n" + '\n'.join(print_statement) + '\n'
         return print_statement
 
@@ -99,14 +99,12 @@ class TestOutputValues(unittest.TestCase):
     Unit testing against known values 
     """
     def test_butadiene(self):
-        energs, degs = zip(*Huckel(4, verbose=False).eig)
-        energs = set([round(energ, 3) for energ in energs])
-        self.assertEqual(energs, set([1.618, 0.618, -1.618, -0.618]))
+        expect_energs = sorted(Counter([1.61803, 0.61803, -1.61803, -0.61803]).items(), reverse=True)
+        self.assertEqual(Huckel(4, verbose=False).eig, expect_energs)
 
     def test_cyclobutadiene(self):
-        energs, degs = zip(*Huckel(4, cyclic=True, verbose=False).eig)
-        energs = set([round(energ, 3) for energ in energs])
-        self.assertEqual(energs, set([0., -2., +2.]))
+        expect_energs = sorted(Counter([-2., 0., 0., 2.]).items(), reverse=True)
+        self.assertEqual(Huckel(4, cyclic=True, verbose=False).eig, expect_energs)
 
 if __name__ == '__main__':
     class MyParser(argparse.ArgumentParser):
@@ -120,7 +118,6 @@ if __name__ == '__main__':
     parser.add_argument("n", default=None, help="number of atoms in molecule", type=int)
     parser.add_argument("-cyclic", help="flag for cyclic molecule", action="store_true")
     parser.add_argument("-platonic", help="flag for platonic solid", action="store_true")
-    parser.add_argument("-unittest", help="flag for unit testing", action="store_false")
     parser.add_argument("--alpha", default=0, help="value of alpha (AO energy)", type=float)
     parser.add_argument("--beta", default=-1, help="value of beta (resonance integral)", type=float)
     args = parser.parse_args()
