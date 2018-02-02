@@ -187,7 +187,7 @@ class Diffusion(object):
                 cell._update()
             self._diffuse()
             
-    def plot1d(self, species=self.species):
+    def plot1d(self, species=None):
         """
         Plot concentration vs cell number of a particular chemical species or species
     
@@ -202,6 +202,8 @@ class Diffusion(object):
 
         plt.figure(figsize=(10,10))
         plt.xlabel('cell number')
+        if species == None:
+            species = self.species
         if isinstance(species, list):
             for speci in species:
                 concs = get_conc_list(speci)
@@ -230,17 +232,17 @@ def urea_folding_experiment(outarr, outfig, verbose=False, ureaconc_range=np.ara
     N -- both domains folded
     """
     if verbose:
-    	print "D <-> I <-> N\nD -- fully unfolded\nI -- single domain folded\nN -- both domains folded\n"
-    	print "Initial concentrations:\n" + '\n'.join('%s\t%.3fM' % (species, concs) for (species, concs) in concs.items()) + '\n'
+    	print ("D <-> I <-> N\nD -- fully unfolded\nI -- single domain folded\nN -- both domains folded\n")
+    	print ("Initial concentrations:\n" + '\n'.join('%s\t%.3f M' % (species, concs) for (species, concs) in concs.items()) + '\n')
     
     results = np.zeros((len(ureaconc_range), 4))
     for i, ureaconc in enumerate(ureaconc_range):
-        print ('Started run %i at [urea] = %.3f' % (i+1, ureaconc))
+        print ('Started run %i of %i at [urea] = %.3f M ' % (i+1, len(ureaconc_range), ureaconc))
         # rate constants given in the handout
-        reacts = [('D->I', 26000*exp(-1.68*ureaconc),
-                  ('I->D', 6*10**-2*exp(0.96*ureaconc),
-                  ('I->N', 730*exp(-1.72*ureaconc),
-                  ('N->I', 7.5*10**-4*exp(1.20*ureaconc)]
+        reacts = [('D->I', 26000*exp(-1.68*ureaconc)),
+                  ('I->D', 6*10**-2*exp(0.96*ureaconc)),
+                  ('I->N', 730*exp(-1.72*ureaconc)),
+                  ('N->I', 7.5*10**-4*exp(1.20*ureaconc))]
         exper = Reactor(concs, reacts)
         exper.converge()
         results[i] = [ureaconc, exper.concs['D'], exper.concs['I'], exper.concs['N']]
@@ -273,31 +275,31 @@ def BZ_experiment(outarr, outfig, verbose=False, concs={'A': 0.06, 'B': 0.06, 'P
     Z->Y
     """
     if verbose:
-		print "A+Y->X+P\nX+Y->P\nB+X->2X+Z\n2X->Q\nZ->Y\n"
-		print "Initial concentrations / M:\n" + '\n'.join('%s\t%.3f' % (species, concs) for (species, concs) in concs.items()) + '\n'
+        print ("A+Y->X+P\nX+Y->P\nB+X->2X+Z\n2X->Q\nZ->Y\n")
+        print ("Initial concentrations / M:\n" + '\n'.join('%s\t%.3f' % (species, concs) for (species, concs) in concs.items()) + '\n')
     # rate constants given in the handout
     reacts = [('A+Y->X+P', 1.34),
              ('X+Y->P', 1.6*10**9),
              ('B+X->2X+Z', 8*10**3),
              ('2X->Q', 4*10**7),
              ('Z->Y', 1)]
-    results = np.zeros((1000000, 1+3))
+    results = np.zeros((1+480000, 1+3))
     results[0] = [0, concs['X'], concs['Y'], concs['Z']]
     exper = Reactor(concs, reacts)
-    for step in range(999999):
-    	if not (step % 1000): 
-    		print ('Started run %i of 999999' % (step+1))
+    for step in range(480000):
+        if not (step % 1000):
+            print ('Started run %i of 480000' % (step+1))
         exper.jump_forward(500)
-        results[step+1] = [step*10, exper.concs['X'], exper.concs['Y'], exper.concs['Z']]
+        results[step+1] = [step*500*exper.timestep, exper.concs['X'], exper.concs['Y'], exper.concs['Z']]
     
     if outarr:
         np.savetxt(outarr, results, delimiter=',')
         
     fig = plt.figure(figsize=(10,10))
     ax = fig.add_subplot(111)
-    ax.semilogy(results[:, 0], results[:, 1], color='b', legend='X')
-    ax.semilogy(results[:, 0], results[:, 2], color='g', legend='Y')
-    ax.semilogy(results[:, 0], results[:, 3], color='r', legend='Z')
+    ax.semilogy(results[:, 0], results[:, 1], color='b', label='X')
+    ax.semilogy(results[:, 0], results[:, 2], color='g', label='Y')
+    ax.semilogy(results[:, 0], results[:, 3], color='r', label='Z')
     ax.set_ylabel("log[concentration / M]", fontsize=20)
     ax.set_xlabel("time / s", fontsize=20)
     ax.set_title("Oscillations of concentrations with time", fontsize=20)
@@ -308,11 +310,11 @@ def BZ_experiment(outarr, outfig, verbose=False, concs={'A': 0.06, 'B': 0.06, 'P
 
 if __name__ == '__main__':            
     parser = argparse.ArgumentParser()
-    parser.add_argument('-protein_folding', action='store_true', help='Run experiment investigating the effect of urea concentration' + \
-   													 		 		  'on the folding of a two-domain protein that fold cooperatively')
+    parser.add_argument('-protein_folding', action='store_true', help='Run experiment investigating the effect of the concentration ' + \
+   													 		 		  'of a denaturant (urea) on the folding of a two-domain protein that folds cooperatively')
     parser.add_argument('-BZ', action='store_true', help='Run experiment investigating oscillations of a Belousov-Zhabotinsky reaction using the Oregonator model')
-    parser.add_argument('--outarr', default=None, help='Unix path to write a numpy array with intermediate concentrations of the run (optional)')
-    parser.add_argument('--outfig', default=None, help='Unix path to save the resulting figure (optional')
+    parser.add_argument('-outarr', default=None, help='Unix path to write a numpy array with intermediate concentrations of the run (optional)')
+    parser.add_argument('-outfig', default=None, help='Unix path to save the resulting figure (optional')
     args = parser.parse_args()
     if args.protein_folding:
     	urea_folding_experiment(args.outarr, args.outfig, verbose=True)
