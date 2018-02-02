@@ -37,7 +37,7 @@ class Reactor(object):
                 rate *= concs[species]**stoichiom
             return rate
         
-    def __init__(self, concs, reacts, timestep=10**(-6)):
+    def __init__(self, concs, reacts, timestep=1e-6):
         """
         concs -- initial concentrations of all chemical species as a dictionary, with
         species as keys and their concentrations as values
@@ -96,7 +96,7 @@ class Reactor(object):
         for i in range(jump_size):
             self._update()
             
-    def converge(self, jump_size=500, convergence_limit=10**(-5), verbose=False):
+    def converge(self, jump_size=500, convergence_limit=1e-5, verbose=False):
         """
         Run chemical reactor until converged in concentrations of all chemical species,
         convergence is achieved when all species change their concentrations by less than
@@ -143,7 +143,7 @@ class Diffusion(object):
     DEPENDS ON Reactor class
     """
         
-    def __init__(self, dim, diffconst, concs_default, reacts, freq_special=None, concs_special=None, timestep=10**-6):
+    def __init__(self, dim, diffconst, concs_default, reacts, freq_special=None, concs_special=None, timestep=1e-6):
         """
         dim -- (list of) spatial dimension(s) great than 1
         diffconst -- 0.0 <= diffusion coefficient <= 0.5 (each species diffuses as difference in conc * diffconst)
@@ -240,9 +240,9 @@ def urea_folding_experiment(outarr, outfig, verbose=False, ureaconc_range=np.ara
         print ('Started run %i of %i at [urea] = %.3f M ' % (i+1, len(ureaconc_range), ureaconc))
         # rate constants given in the handout
         reacts = [('D->I', 26000*exp(-1.68*ureaconc)),
-                  ('I->D', 6*10**-2*exp(0.96*ureaconc)),
+                  ('I->D', 6e-2*exp(0.96*ureaconc)),
                   ('I->N', 730*exp(-1.72*ureaconc)),
-                  ('N->I', 7.5*10**-4*exp(1.20*ureaconc))]
+                  ('N->I', 7.5e-4*exp(1.20*ureaconc))]
         exper = Reactor(concs, reacts)
         exper.converge()
         results[i] = [ureaconc, exper.concs['D'], exper.concs['I'], exper.concs['N']]
@@ -279,9 +279,9 @@ def BZ_experiment(outarr, outfig, verbose=False, concs={'A': 0.06, 'B': 0.06, 'P
         print ("Initial concentrations / M:\n" + '\n'.join('%s\t%.3f' % (species, concs) for (species, concs) in concs.items()) + '\n')
     # rate constants given in the handout
     reacts = [('A+Y->X+P', 1.34),
-             ('X+Y->P', 1.6*10**9),
-             ('B+X->2X+Z', 8*10**3),
-             ('2X->Q', 4*10**7),
+             ('X+Y->P', 1.6e9),
+             ('B+X->2X+Z', 8e3),
+             ('2X->Q', 4e7),
              ('Z->Y', 1)]
     results = np.zeros((1+480000, 1+3))
     results[0] = [0, concs['X'], concs['Y'], concs['Z']]
