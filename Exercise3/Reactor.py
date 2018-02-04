@@ -235,14 +235,14 @@ def urea_folding_experiment(outarr, outfig, verbose=False, ureaconc_range=np.ara
     	print ("D <-> I <-> N\nD -- fully unfolded\nI -- single domain folded\nN -- both domains folded\n")
     	print ("Initial concentrations:\n" + '\n'.join('%s\t%.3f M' % (species, concs) for (species, concs) in concs.items()) + '\n')
     
+    reacts = [('D->I', 26000*exp(-1.68*ureaconc)),
+              ('I->D', 6e-2*exp(0.96*ureaconc)),
+              ('I->N', 730*exp(-1.72*ureaconc)),
+              ('N->I', 7.5e-4*exp(1.20*ureaconc))]
     results = np.zeros((len(ureaconc_range), 4))
     for i, ureaconc in enumerate(ureaconc_range):
         print ('Started run %i of %i at [urea] = %.3f M ' % (i+1, len(ureaconc_range), ureaconc))
         # rate constants given in the handout
-        reacts = [('D->I', 26000*exp(-1.68*ureaconc)),
-                  ('I->D', 6e-2*exp(0.96*ureaconc)),
-                  ('I->N', 730*exp(-1.72*ureaconc)),
-                  ('N->I', 7.5e-4*exp(1.20*ureaconc))]
         exper = Reactor(concs, reacts)
         exper.converge()
         results[i] = [ureaconc, exper.concs['D'], exper.concs['I'], exper.concs['N']]
