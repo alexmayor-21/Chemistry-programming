@@ -1,7 +1,6 @@
 import numpy as np
 from math import exp
 from decimal import Decimal
-from pprint import pprint
 import copy
 import argparse
 import sys
@@ -72,7 +71,7 @@ class System(object):
         if the particle's coordinate is x, 1-dimensional grad = 1/(2*delta) * (potential at x+delta - potential at x-delta)
 
         Args:
-            delta(float, default) -- numerical stepsize
+            delta(float, default): numerical stepsize
 
         """
         self.gradients = list()
@@ -101,13 +100,14 @@ class System(object):
         self.get_potential()
         self.get_numeric_grad()
 
-    def converge(self, convergence_limit=1e-6):
+    def converge(self, convergence_limit=1e-6, verbose=True):
         """Update system's configuration until a (local) minimum is reached
 
         Args:
-            convergence_limit (float, default) -- the smallest fractional change in energy at which to declare convergence
+            convergence_limit (float, default): the smallest fractional change in energy at which to declare convergence
                 if enough steps have been taken
-
+            verbose (bool, default): flag to print intermediate steps during iteration
+                
         """
         frac_change = float("inf")
         steps = 1
@@ -125,20 +125,21 @@ class System(object):
                 self.__dict__ = memory
                 self.lambd /= 2
             else:
-                if (steps % 100 == 0):
+                if (steps % 100 == 0) and verbose:
                     print (u'%i steps: U = %.3E, \u0394U / U = %.3E' % (steps, self.potential, frac_change))
                 steps += 1
-
-        print ('\nConverged after %i steps' % steps)
-        print ('Equilibrium U = %.3E' % self.potential)
-        print ('Printed XYZ file\n')
+        
+        if verbose:
+            print ('\nConverged after %i steps' % steps)
+            print ('Equilibrium U = %.3E' % self.potential)
+            print ('Printed XYZ file\n')
     
     def to_XYZ(self, path):
-        """
-        Write system configuration in XYZ format at location specified by path
+        """Write system configuration in XYZ format at location specified by path
 
         Args:
-            path (str) -- Unix path to location where to write configuration
+            path (str): Unix path to location where to write configuration
+            
         """
         with open(path, 'w') as f:
             f.write(str(self.num_particles) + '\n')
@@ -157,10 +158,12 @@ class System(object):
 
     @staticmethod
     def Lennard_Jones(rm=0.5, epsilon=1):
-        """
-        Returns pairwise Lennard_Jones potential function with predefined parameters
-        rm -- equilibrium separation
-        epsilon -- energy at equilibrum separation
+        """Returns pairwise Lennard_Jones potential function with predefined parameters
+        
+        Agrs:
+            rm (float, default): Equilibrium separation
+            epsilon (float, default): Energy at equilibrum separation
+            
         """
         def Lennard_Jones_pfun(nparr1, nparr2):
             r = np.linalg.norm(nparr1 - nparr2)
@@ -169,16 +172,35 @@ class System(object):
 
     @staticmethod
     def Morse(sigma=1, De=1, re=0.5):
-        """
-        Returns pairwise Morse potential function with predefined parameters
-        De -- energy at infinite separation
-        re -- equilibrium separation
-        sigma -- paramater determining the steepness of the potential well
+        """Returns pairwise Morse potential function with predefined parameters
+        
+        Args:
+            De (float, default): Energy at infinite separation
+            re (float, default): Equilibrium separation
+            sigma (float, default): Paramater determining the steepness of the potential well
+            
         """
         def Morse_pfun(nparr1, nparr2):
             r = np.linalg.norm(nparr1 - nparr2)
             return De*(1 - exp(-(r-re)/sigma))**2
-        return Morse_pfun               
+        return Morse_pfun
+    
+    @staticmethod
+    def sample_outputs(output):
+        """Writing optimised configurations for a range of particles for manual inspection and unittesting
+        
+        Args:
+            output (str): Unix path where to write outputs
+            
+        """        
+        for n in [2,3,4,6,7,8,12,20]:
+            sys = System(n, System.Morse(sigma=1, De=1, re=0.5))
+            sys.converge(verbose=False)
+            sys.to_XYZ(output + '/Morse_%i.xyz' % n)
+        for n in [2,3,4,6,7,8]:
+            sys = System(n, System.Lennard_Jones(rm=0.5, epsilon=1))
+            sys.converge(verbose=False)
+            sys.to_XYZ(output + '/LJ_%i.xyz' % n)               
 
 if __name__ == '__main__':
 	class MyParser(argparse.ArgumentParser):
