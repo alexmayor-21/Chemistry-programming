@@ -29,7 +29,7 @@ class System(object):
 
     """
     
-    def __init__(self, num_particles, pfun, particles=None, dim=3, lambd=1e2):
+    def __init__(self, num_particles, pfun, particles=None, dim=3, lambd=1e10):
         self.pfun = pfun
         self.num_particles = num_particles
         self.dim = dim
@@ -45,6 +45,7 @@ class System(object):
 
     def get_potential(self):
         """Recomputes system's potential"""
+
         self.potential = 0.
         for ind, i in enumerate(self.particles):
             for j in self.particles[ind+1:]:
