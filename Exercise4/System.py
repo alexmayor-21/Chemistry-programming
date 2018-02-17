@@ -1,6 +1,5 @@
 import numpy as np
 from math import exp
-from decimal import Decimal
 import copy
 import argparse
 import sys
