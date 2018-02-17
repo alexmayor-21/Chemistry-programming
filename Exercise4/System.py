@@ -167,7 +167,10 @@ class System(object):
         """
         def Lennard_Jones_pfun(nparr1, nparr2):
             r = np.linalg.norm(nparr1 - nparr2)
-            return epsilon*((rm / r)**12 - 2*(rm / r)**6)
+            # the potential is epsilon*((rm / r)**12 - 2*(rm / r)**6), but it's preferrable
+            # to compute (rm / r)**12 by squaring the second term
+            frac_exp = (rm / r)**6
+            return epsilon*(frac_exp**2 - 2*frac_exp)
         return Lennard_Jones_pfun
 
     @staticmethod
