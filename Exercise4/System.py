@@ -144,7 +144,8 @@ class System(object):
             f.write(str(self.num_particles) + '\n')
             f.write("Geometry of system \n")
             for i, particle in enumerate(self.particles):
-                f.write("C %.4f %.4f %.4f\n" % (particle[0], particle[1], particle[2]))
+                # the element does not matter
+                f.write("He %.4f %.4f %.4f\n" % (particle[0], particle[1], particle[2]))
 
     def __str__(self):
         if self.dim != 3:
@@ -188,21 +189,21 @@ class System(object):
         return Morse_pfun
     
     @staticmethod
-    def sample_outputs(output):
+    def sample_outputs(direc):
         """Writing optimised configurations for a range of particles for manual inspection and unittesting
         
         Args:
-            output (str): Unix path where to write outputs
+            direc (str): Unix path to directory where to write outputs
             
         """        
         for n in [2,3,4,6,7,8,12,20]:
             sys = System(n, System.Morse(sigma=1, De=1, re=0.5))
             sys.converge(verbose=False)
-            sys.to_XYZ(output + '/Morse_%i.xyz' % n)
+            sys.to_XYZ(direcs + '/Morse_%i.xyz' % n)
         for n in [2,3,4,6,7,8]:
             sys = System(n, System.Lennard_Jones(rm=0.5, epsilon=1))
             sys.converge(verbose=False)
-            sys.to_XYZ(output + '/LJ_%i.xyz' % n)               
+            sys.to_XYZ(direc + '/LJ_%i.xyz' % n)               
 
 if __name__ == '__main__':
 	class MyParser(argparse.ArgumentParser):
