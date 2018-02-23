@@ -18,12 +18,15 @@ class System(object):
     Attributes:
         dim (int): Dimensionality of system
         num_particles (int): Number of particles
-        pfun (function): Pariwise potential function
+        pfun (function): Pairwise potential function
         particles (list of Numpy arrays): Current onfiguration of system
         potential (float): Current potential
         gradients (list of Numpy arrays): Gradients of each particle's potential
         lambd (float): Proportionality constant for updating a particle's position,
-            note that lambd is optimised by bound methods during iteration
+    
+    Note:
+        lambd is optimised by instance methods as the system is converging so it doesn't matter
+            if its initial value is too large
 
     """
     
@@ -34,10 +37,11 @@ class System(object):
         self.lambd = lambd
         if particles:
             self.particles = particles
+            if any(particle.size != dim for particle in particles):
+                raise ValueError("Predefined configuration needs to be consistent with the suggested dimensionality of the system")
         else:
-            # particles' positions are initiated randomly in a 1x1x1 cube
-            self.particles = [np.random.rand(self.dim)
-                              for num in range(num_particles)]
+            # particles' positions are randomly initialised in a 1x1x1 cube
+            self.particles = [np.random.rand(self.dim) for num in range(num_particles)]
         self.get_potential()
         self.get_numeric_grad()
 
@@ -57,7 +61,7 @@ class System(object):
             partners (list of Numpy arrays): configuration of interaction partners
 
         Returns:
-            active_potential (float): potential
+            active_potential (float): potential of the particle
 
         """
         active_potential = 0.
@@ -74,6 +78,7 @@ class System(object):
 
         """
         self.gradients = list()
+        # delta_matrix is just an accessory matrix used for the ease of computing pot_plus and pot_minus
         delta_matrix = np.identity(self.dim) * delta 
         for i, particle in enumerate(self.particles):
             partners = self.particles[:i] + self.particles[(i+1):]
@@ -86,7 +91,6 @@ class System(object):
             
     def _update(self):
         """Update positions of all particles, based on their gradients, and recompute system potential and gradients"""
-
         for particle, gradient in zip(self.particles, self.gradients):
             update = gradient*self.lambd
             # if the norm of gradient * lambd is more than 1., the particle experiences a strong repulsive potential 
@@ -108,30 +112,33 @@ class System(object):
             verbose (bool, default): flag to print intermediate steps during iteration
                 
         """
-        frac_change = float("inf")
-        steps = 1
+        pot_change = float("inf")
+        steps = 0
         
-        # convergence declared when the fractional change in energy is less than convergence_limit and when at least 500 steps have been taken
+        def converged():
+            updates = (np.linalg.norm(grad) for grad in self.gradients)
+            return all(abs(update) < 1e-4 for update in updates)
+
+        # convergence declared when the a change in position of each particle is less than convergence_limit and when at least 500 steps have been taken
         # the second convergence criterion ensures that we don't declare convergence when the particles haven't yet had a chance to approach each other
-        # as is sometimes the case at the start of the iteration     
-        while (abs(frac_change) > convergence_limit) or (steps < 500): 
+        # as it is sometimes the case at the start of the iteration     
+        while not converged() or (steps < 500): 
             # store copy of the systems configuration to backtrack if overshot the minimum
             memory = copy.deepcopy(self.__dict__)
             self._update()
-            frac_change = (self.potential - memory['potential']) / abs(memory['potential'])
-            if frac_change > 0:
+            pot_change = (self.potential - memory['potential']) / abs(memory['potential'])
+            if pot_change > 0:
                 # backtrack and reduce lambda by a factor of 2
                 self.__dict__ = memory
                 self.lambd /= 2
             else:
                 if (steps % 100 == 0) and verbose:
-                    print (u'%i steps: U = %.3E, \u0394U / U = %.3E' % (steps, self.potential, frac_change))
+                    print (u'{:<4} steps: U = {:.3E}, \u0394U / U = {:.3E}'.format(steps, self.potential, pot_change))
                 steps += 1
         
         if verbose:
             print ('\nConverged after %i steps' % steps)
             print ('Equilibrium U = %.3E' % self.potential)
-            print ('Printed XYZ file\n')
     
     def to_XYZ(self, path):
         """Write system configuration in XYZ format at location specified by path
@@ -143,7 +150,7 @@ class System(object):
         with open(path, 'w') as f:
             f.write(str(self.num_particles) + '\n')
             f.write("Geometry of system \n")
-            for i, particle in enumerate(self.particles):
+            for particle in self.particles:
                 # the element does not matter
                 f.write("He %.4f %.4f %.4f\n" % (particle[0], particle[1], particle[2]))
 
@@ -189,7 +196,7 @@ class System(object):
         return Morse_pfun
     
     @staticmethod
-    def sample_outputs(direc):
+    def sample_output(direc):
         """Writing optimised configurations for a range of particles for manual inspection and unittesting
         
         Args:
@@ -199,36 +206,38 @@ class System(object):
         for n in [2,3,4,6,7,8,12,20]:
             sys = System(n, System.Morse(sigma=1, De=1, re=0.5))
             sys.converge(verbose=False)
-            sys.to_XYZ(direcs + '/Morse_%i.xyz' % n)
+            sys.to_XYZ(direc + '/Morse_%i.xyz' % n)
+        # convergence with LJ potential and n > 10 is slow 
         for n in [2,3,4,6,7,8]:
             sys = System(n, System.Lennard_Jones(rm=0.5, epsilon=1))
             sys.converge(verbose=False)
             sys.to_XYZ(direc + '/LJ_%i.xyz' % n)               
 
 if __name__ == '__main__':
-	class MyParser(argparse.ArgumentParser):
-	# overriding error method to print help message
-	# when script is called without arguments (default was to print error)
-	    def error(self, message):
-	    	self.print_help()
-	    	sys.exit()
-
-	parser = MyParser()
-	parser.add_argument('-n', help="Number of particles in the system", type=int)
-	parser.add_argument('-potential', help="Potential for optimisation, can be 'Morse' or 'LJ' (i.e. Lennard-Jones)", type=str)
-	parser.add_argument('-o', help="Unix path to folder where to write .xyz file (optional)")
-	args = parser.parse_args()
-	if args.n == None:
-		parser.print_help()
-		sys.exit()
-	if args.potential == 'Morse':
-		sys = System(args.n, System.Morse())
-		sys.converge()
-	elif args.potential == 'LJ':
-		sys = System(args.n, System.Lennard_Jones())
-		sys.converge()
-	else: 
-		raise ValueError('Only Morse and LJ potentials are supported')
-	if args.o:
-		sys.to_XYZ(args.o)
-
+    class MyParser(argparse.ArgumentParser):
+    # overriding error method to print help message
+    # when script is called without arguments (default was to print error)
+        def error(self, message):
+                self.print_help()
+                sys.exit()
+    
+    parser = MyParser()
+    parser.add_argument('-n', help="Number of particles in the system", type=int)
+    parser.add_argument('-potential', help="Potential for optimisation, can be 'Morse' or 'LJ' (i.e. Lennard-Jones)", type=str)
+    parser.add_argument('-o', help="Unix path to folder where to write .xyz file (optional)")
+    args = parser.parse_args()
+    if args.n == None:
+        parser.print_help()
+        sys.exit()
+    if args.potential == 'Morse':
+        sys = System(args.n, System.Morse())
+        sys.converge()
+    elif args.potential == 'LJ':
+        sys = System(args.n, System.Lennard_Jones())
+        sys.converge()
+    else:
+        raise ValueError('Only Morse and LJ potentials are supported')
+    if args.o:
+        sys.to_XYZ(args.o)
+        print ("Printed XYZ file")
+    print ()
