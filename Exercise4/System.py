@@ -115,7 +115,7 @@ class System(object):
                 self.__dict__ = memory
                 self.lambd /= 2
             else:
-                if (steps % 100 == 0) and verbose:
+                if ((steps % 100 == 0) and verbose) or (steps > 0 and steps % 10000 == 0):
                     print ('{:<4} steps: U = {:.3E}, \u0394U / U = {:.3E}'.format(steps, self.potential, frac_change))
                 steps += 1
         
@@ -229,7 +229,7 @@ if __name__ == '__main__':
     parser.add_argument('-n', help="Number of particles in the system", type=int)
     parser.add_argument('-p', '--potential', help="Potential for optimisation, can be 'Morse' or 'LJ' (i.e. Lennard-Jones)", type=str)
     parser.add_argument('-g', '--globally',  help='Optimise system 10 times to find global minimum (recommended for Lennard_Jones potential with n > 6)', action='store_true')
-    parser.add_argument('-o', '--outfile', help="Unix path to .xyz file where to write system's configuration(optional)")
+    parser.add_argument('-o', '--outfile', help="Unix path to .xyz file where to write system's configuration(optional)", type=str)
     args = parser.parse_args()
 
     if args.n == None:
@@ -246,7 +246,7 @@ if __name__ == '__main__':
         system.global_converge()
     else:
         system.converge()
-    if args.o:
-        system.to_XYZ(args.o)
+    if args.outfile:
+        system.to_XYZ(args.outfile)
         print ("Printed XYZ file")
     print ()
